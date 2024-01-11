@@ -1,0 +1,127 @@
+:root {
+    --text: #c7d6ff;
+    --sub-text: #9aa3bc;
+    --line-height: normal;
+    --title: #6d86ff;
+    --bold: #47f3a4;
+    --preformatted: #e6c07b;
+    --summary: #454bff;
+    --back: #090f16;
+    --back2: #0f1720;
+    --transparentBack: #090f1677;
+    --hover: #17222e;
+    --line: #1e4976;
+    --math: #41f0c1;
+    --space: 0px;
+    --code: #08172a;
+    --code-color: #abb2bf;
+    --table: #040609;
+    --table-head: #292b56;
+    font-family: Helvetica,Arial,sans-serif;
+    letter-spacing: normal;
+    word-spacing: normal;
+}
+
+body {
+    background-color: var(--back);
+    color: var(--text);
+}
+
+
+table {
+    box-shadow: 0px 4px 2px -1px rgb(0 0 0 / 40%), 0px 2px 2px 0px rgb(0 0 0 / 30%), 0px 1px 5px 0px rgb(0 0 0 / 25%);
+    border-collapse: collapse;
+    background: var(--table);
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    overflow: hidden;
+    padding: 1px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+thead tr {
+    background: var(--table-head);
+}
+
+tbody tr {
+    border-bottom: 1px dotted #163455;
+}
+
+tbody tr:last-child {
+    border-bottom: none;
+}
+
+th {
+    color: var(--math);
+    padding-left: 5px;
+    padding-right: 5px;
+}
+
+td {
+    border-left: 1px solid var(--line);
+    border-right: 1px solid var(--line);
+    padding: 4px;
+}
+
+td:first-child {
+    border-left: none;
+}
+
+td:last-child {
+    border-right: none;
+}
+
+input {
+    background-color: var(--back2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px;
+    margin: 4px;
+}
+
+input[type="number"],input[type="text"] {
+    width:4em;
+}
+
+#main-div {
+    display: inline-flex;
+}
+
+h4 {
+    margin: 0;
+    padding: 0;
+}
+
+svg {
+    border: 1px solid var(--line);
+}
+
+button {
+    color: #6df4d0;
+    background-color: #001e3c;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+    margin: 5px;
+    padding: 3px 10px 3px 10px;
+    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 40%), 0px 2px 2px 0px rgb(0 0 0 / 30%), 0px 1px 5px 0px rgb(0 0 0 / 25%);
+}
+
+button:hover {
+    background-color: #073058;
+}
+
+button:active {
+    background-color: #004c99;
+}
+
+#left-div {
+    padding-left: 1em;
+    margin-left: 1em;
+    border-left: 1px solid var(--line);
+}
+
+#info {
+    width: 15em;
+}

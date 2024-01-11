@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Diagram Gen</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="icon" href="icon.png" type="image/x-icon">
+</head>
+<body>
+    <div id="main-div">
+        <div>
+            <details>
+                <summary>Info</summary>
+                <p id="info">In the table below, enter the numbers for the state that each action leads to from each state (no need to write s_, just the number)</p>
+            </details>
+            <span>actions </span><input type="number" id="width" value="2" min="1">
+            <span>states </span><input type="number" id="height" value="4" min="1">
+            <table id="input-table"><tr><th></th><th>a</th><th>b</th></tr><tr><td>s0</td><td><input type="text" id="cell00" value="1"></td><td><input type="text" id="cell01" value="2"></td></tr><tr><td>s1</td><td><input type="text" id="cell10" value="3"></td><td><input type="text" id="cell11" value="1"></td></tr><tr><td>s2</td><td><input type="text" id="cell20" value="1"></td><td><input type="text" id="cell21" value="3"></td></tr><tr><td>s3</td><td><input type="text" id="cell30" value="2"></td><td><input type="text" id="cell31" value="1"></td></tr></table>
+        </div>
+        <div id="left-div">
+            <h4>initial states:</h4><div id="initial-states"></div>
+            <h4>final states:</h4><div id="final-states"></div>
+            <br>
+            <button id="copy">copy</button><button id="download-light">download light</button><button id="download-dark">download dark</button>
+            <br>
+            <svg id="output" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+        </div>
+    </div>
+    <script src="scripts/main.js"></script>
+</body>
+
+</html>
