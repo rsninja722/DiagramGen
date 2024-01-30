@@ -1,5 +1,11 @@
 let statePositions = [];
 let labelPoses = [];
+let statePrefix = "s";
+let transitionType = "0123456789";
+
+const radius = 20;
+const spacing = 100;
+const charWidth = 10;
 
 function getTable() {
     let width = parseInt(document.getElementById("width").value);
@@ -17,15 +23,9 @@ function getTable() {
     return table;
 }
 
-function generateSVG() {
+function getPositions() {
     let table = getTable();
-    let svg = document.getElementById("output");
-    svg.innerHTML = "";
     let states = parseInt(document.getElementById("height").value);
-    
-    let radius = 20;
-    let spacing = 100;
-    let charWidth = 10;
 
     let initialStates = [];
     for(let i = 0; i < states; i++) {
@@ -142,7 +142,35 @@ function generateSVG() {
 
     labelPoses = [];
 
-    let memo = table.map(() => table.map(() => 0));
+    let labels = table.map(() => table.map(() => []));
+
+    for (let y = 0; y < table.length; y++) {
+        for (let x = 0; x < table[y].length; x++) {
+            if (table[y][x] === "") {
+                continue;
+            }
+            if (parseInt(table[y][x]) >= states || isNaN(parseInt(table[y][x]))) {
+                continue;
+            }
+
+            let transitionTo = parseInt(table[y][x]);
+
+            labels[y][transitionTo].push(x);
+        }
+    }
+
+    return [statePositions, initialStates, finalStates, labels];
+}
+
+function generateSVG() {
+    let table = getTable();
+
+    let svg = document.getElementById("output");
+    svg.innerHTML = "";
+    let states = parseInt(document.getElementById("height").value);
+
+
+    let [statePositions, initialStates, finalStates, labels] = getPositions();
 
     // create layers
     let back = document.createElementNS("http://www.w3.org/2000/svg", "g");
@@ -199,45 +227,29 @@ function generateSVG() {
         label.setAttribute("text-anchor", "middle");
         label.setAttribute("dominant-baseline", "middle");
         label.setAttribute("fill", "var(--text)");
-        label.innerHTML = "s" + i;
+        label.innerHTML = statePrefix + i;
         front.appendChild(circle);
         top.appendChild(label);
     }
 
     // add transition lines
-    for (let y = 0; y < table.length; y++) {
-        for (let x = 0; x < table[y].length; x++) {
-            if (table[y][x] === "") {
-                continue;
-            }
-            if (parseInt(table[y][x]) >= states || isNaN(parseInt(table[y][x]))) {
+    for (let y = 0; y < labels.length; y++) {
+        for (let x = 0; x < labels[y].length; x++) {
+            if (labels[y][x].length === 0) {
                 continue;
             }
 
-            let transitionTo = parseInt(table[y][x]);
+            let transitionTo = x;
 
-            // transition to self
-            if (transitionTo === y) {
+            // use trig to find start point and end point
+            let angle = Math.atan2(statePositions[transitionTo][1] - statePositions[y][1], statePositions[transitionTo][0] - statePositions[y][0]);
+            let x1 = Math.round(statePositions[y][0] + Math.cos(angle) * radius + Math.cos(angle - Math.PI / 2) * radius / 3);
+            let y1 = Math.round(statePositions[y][1] + Math.sin(angle) * radius + Math.sin(angle - Math.PI / 2) * radius / 3);
+            let x2 = Math.round(statePositions[transitionTo][0] - Math.cos(angle) * radius + Math.cos(angle - Math.PI / 2) * radius / 3);
+            let y2 = Math.round(statePositions[transitionTo][1] - Math.sin(angle) * radius + Math.sin(angle - Math.PI / 2) * radius / 3);
 
-                // only add label if loop already exists
-                if (memo[y][transitionTo] > 0) {
-                    // add transition label
-                    let label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                    label.setAttribute("x", statePositions[y][0] + radius + memo[y][transitionTo] * charWidth);
-                    label.setAttribute("y", statePositions[y][1] + radius);
-                    label.setAttribute("text-anchor", "middle");
-                    label.setAttribute("dominant-baseline", "middle");
-                    label.setAttribute("paint-order", "stroke");
-                    label.setAttribute("stroke-width", "2px");
-                    label.setAttribute("stroke", "var(--back)");
-                    label.setAttribute("fill", "var(--text)");
-                    label.innerHTML = "," + "abcdefghijklmnopqrstuvwxyz"[x];
-                    top.appendChild(label);
 
-                    memo[y][transitionTo]++;
-
-                    continue;
-                }
+            if(y === x) {
                 // draw loop to self
                 let circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 circle.setAttribute("cx", statePositions[y][0] + radius / 2);
@@ -246,7 +258,40 @@ function generateSVG() {
                 circle.setAttribute("fill", "none");
                 circle.setAttribute("stroke", "var(--text)");
                 back.appendChild(circle);
+            } else {
+                // draw line
+                let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
 
+                line.setAttribute("x1", x1);
+                line.setAttribute("y1", y1);
+                line.setAttribute("x2", x2);
+                line.setAttribute("y2", y2);
+                line.setAttribute("stroke", "var(--text)");
+                back.appendChild(line);
+
+                // add arrow
+                let scale = 7;
+
+                let arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                let leftX = Math.round(x2 + Math.cos(angle + Math.PI / 2) * scale - Math.cos(angle) * scale);
+                let leftY = Math.round(y2 + Math.sin(angle + Math.PI / 2) * scale - Math.sin(angle) * scale);
+                let rightX = Math.round(x2 + Math.cos(angle - Math.PI / 2) * scale - Math.cos(angle) * scale);
+                let rightY = Math.round(y2 + Math.sin(angle - Math.PI / 2) * scale - Math.sin(angle) * scale);
+                arrow.setAttribute("points", `${x2},${y2} ${leftX},${leftY} ${rightX},${rightY}`);
+                arrow.setAttribute("fill", "var(--text)");
+                back.appendChild(arrow);
+            }
+
+            let labelText = "";
+            for (let i = 0; i < labels[y][x].length; i++) {
+                labelText += transitionType[labels[y][x][i]];
+                if (i !== labels[y][x].length - 1) {
+                    labelText += ",";
+                }
+            }
+
+            // transition to self
+            if (transitionTo === y) {
                 // add transition label
                 let label = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 label.setAttribute("x", statePositions[y][0] + radius);
@@ -257,78 +302,27 @@ function generateSVG() {
                 label.setAttribute("stroke-width", "2px");
                 label.setAttribute("stroke", "var(--back)");
                 label.setAttribute("fill", "var(--text)");
-                label.innerHTML = "abcdefghijklmnopqrstuvwxyz"[x];
+                label.innerHTML = labelText;
                 top.appendChild(label);
-
-                memo[y][transitionTo]++;
-                continue;
-            }
-
-            // use trig to find start point and end point
-            let angle = Math.atan2(statePositions[transitionTo][1] - statePositions[y][1], statePositions[transitionTo][0] - statePositions[y][0]);
-            let x1 = Math.round(statePositions[y][0] + Math.cos(angle) * radius + Math.cos(angle - Math.PI / 2) * radius / 3);
-            let y1 = Math.round(statePositions[y][1] + Math.sin(angle) * radius + Math.sin(angle - Math.PI / 2) * radius / 3);
-            let x2 = Math.round(statePositions[transitionTo][0] - Math.cos(angle) * radius + Math.cos(angle - Math.PI / 2) * radius / 3);
-            let y2 = Math.round(statePositions[transitionTo][1] - Math.sin(angle) * radius + Math.sin(angle - Math.PI / 2) * radius / 3);
-
-            // only add label if line already exists
-            if (memo[y][transitionTo] > 0) {
+            } else {
                 // add transition label
                 let label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-                label.setAttribute("x", Math.round((x1 + x2) / 2 + memo[y][transitionTo] * charWidth));
+                label.setAttribute("x", Math.round((x1 + x2) / 2));
                 label.setAttribute("y", Math.round((y1 + y2) / 2));
+                labelPoses.push([Math.round((x1 + x2) / 2), Math.round((y1 + y2) / 2)]);
                 label.setAttribute("text-anchor", "middle");
                 label.setAttribute("dominant-baseline", "middle");
                 label.setAttribute("paint-order", "stroke");
                 label.setAttribute("stroke-width", "2px");
                 label.setAttribute("stroke", "var(--back)");
                 label.setAttribute("fill", "var(--text)");
-                label.innerHTML = "," + "abcdefghijklmnopqrstuvwxyz"[x];
+                label.innerHTML = labelText;
                 top.appendChild(label);
-
-                memo[y][transitionTo]++;
-
-                continue;
             }
-
-            let line = document.createElementNS("http://www.w3.org/2000/svg", "line");
-
-            line.setAttribute("x1", x1);
-            line.setAttribute("y1", y1);
-            line.setAttribute("x2", x2);
-            line.setAttribute("y2", y2);
-            line.setAttribute("stroke", "var(--text)");
-            back.appendChild(line);
-
-            // add arrow
-            let scale = 7;
-
-            let arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
-            let leftX = Math.round(x2 + Math.cos(angle + Math.PI / 2) * scale - Math.cos(angle) * scale);
-            let leftY = Math.round(y2 + Math.sin(angle + Math.PI / 2) * scale - Math.sin(angle) * scale);
-            let rightX = Math.round(x2 + Math.cos(angle - Math.PI / 2) * scale - Math.cos(angle) * scale);
-            let rightY = Math.round(y2 + Math.sin(angle - Math.PI / 2) * scale - Math.sin(angle) * scale);
-            arrow.setAttribute("points", `${x2},${y2} ${leftX},${leftY} ${rightX},${rightY}`);
-            arrow.setAttribute("fill", "var(--text)");
-            back.appendChild(arrow);
-
-            // add transition label
-            let label = document.createElementNS("http://www.w3.org/2000/svg", "text");
-            label.setAttribute("x", Math.round((x1 + x2) / 2));
-            label.setAttribute("y", Math.round((y1 + y2) / 2));
-            labelPoses.push([Math.round((x1 + x2) / 2), Math.round((y1 + y2) / 2)]);
-            label.setAttribute("text-anchor", "middle");
-            label.setAttribute("dominant-baseline", "middle");
-            label.setAttribute("paint-order", "stroke");
-            label.setAttribute("stroke-width", "2px");
-            label.setAttribute("stroke", "var(--back)");
-            label.setAttribute("fill", "var(--text)");
-            label.innerHTML = "abcdefghijklmnopqrstuvwxyz"[x];
-            top.appendChild(label);
-
-            memo[y][transitionTo]++;
         }
     }
+
+    let statesSqrt = Math.ceil(Math.sqrt(states));
 
     svg.setAttribute("height", (statesSqrt) * spacing);
     svg.setAttribute("width", (statesSqrt) * spacing);
@@ -339,21 +333,38 @@ function generateTable() {
     let height = parseInt(document.getElementById("height").value);
 
     let table = document.getElementById("input-table");
+
+    // cache old inputs
+    let oldInputs = [];
+    let oldHeight = table.children[0].children.length - 1;
+    let oldWidth = table.children[0].children[1].children.length - 1;
+    for (let i = 0; i < oldHeight; i++) {
+        let row = [];
+        for (let j = 0; j < oldWidth; j++) {
+            let cell = document.getElementById(`cell${i}${j}`);
+            row.push(cell.value);
+        }
+        oldInputs.push(row);
+    }
+
     table.innerHTML = "";
+
+    var tbody = document.createElement("tbody");
+
     for (let i = 0; i < height + 1; i++) {
         let row = document.createElement("tr");
         if (i === 0) {
             row.appendChild(document.createElement("th"));
             for (let j = 0; j < width; j++) {
                 let cell = document.createElement("th");
-                cell.innerText = "abcdefghijklmnopqrstuvwxyz"[j];
+                cell.innerText = transitionType[j];
                 row.appendChild(cell);
             }
-            table.appendChild(row);
+            tbody.appendChild(row);
             continue;
         }
         let cell = document.createElement("td");
-        cell.innerText = "s" + (i - 1);
+        cell.innerText = statePrefix + (i - 1);
         row.appendChild(cell);
 
         for (let j = 0; j < width; j++) {
@@ -362,15 +373,28 @@ function generateTable() {
             input.type = "text";
             input.id = `cell${(i - 1)}${j}`;
             input.addEventListener("change", generateSVG);
+            if (i <= oldHeight && j < oldWidth) {
+                input.value = oldInputs[i - 1][j];
+            }
 
 
             cell.appendChild(input);
             row.appendChild(cell);
         }
-        table.appendChild(row);
+        tbody.appendChild(row);
     }
 
+    table.appendChild(tbody);
+
     generateButtons();
+}
+
+function copiedMessage() {
+    let copy = document.getElementById("copy-msg");
+    copy.innerText = "Copied!";
+    setTimeout(() => {
+        copy.innerText = "";
+    }, 1500);
 }
 
 document.getElementById("width").addEventListener("change", generateTable);
@@ -407,10 +431,143 @@ function generateButtons() {
     }
 }
 
+document.getElementById("state-prefix").addEventListener("change", () => {
+    statePrefix = document.getElementById("state-prefix").value;
+
+    // update all first elements in table rows
+    let table = document.getElementById("input-table").children[0];
+    for (let i = 1; i < table.children.length; i++) {
+        table.children[i].children[0].innerText = statePrefix + (i - 1);
+    }
+});
+
+document.getElementById("transition-type").addEventListener("change", () => {
+    let type = document.getElementById("transition-type").value;
+    let header = document.getElementById("input-table").children[0].children[0].children;
+    for (let i = 1; i < header.length; i++) {
+        header[i].innerText = type[i - 1];
+    }
+
+    transitionType = type;
+});
+
 document.getElementById("copy").addEventListener("click", () => {
     let svg = document.getElementById("output");
     navigator.clipboard.writeText(svg.outerHTML.replace(`id="output" `, ""));
+
+    copiedMessage();
 });
+
+document.getElementById("copyMdTable").addEventListener("click", () => {
+    let table = getTable();
+    let md = "| |";
+    for (let i = 0; i < table[0].length; i++) {
+        md += ` ${transitionType[i]} |`;
+    }
+    md += "\n|---|";
+    for (let i = 0; i < table[0].length; i++) {
+        md += "---|";
+    }
+    md += "\n";
+    for (let i = 0; i < table.length; i++) {
+        md += `| s${i} |`;
+        for (let j = 0; j < table[i].length; j++) {
+            md += ` s${table[i][j]} |`;
+        }
+        md += "\n";
+    }
+    navigator.clipboard.writeText(md);
+
+    copiedMessage();
+});
+
+document.getElementById("copyLatex").addEventListener("click", () => {
+    let scale = 30;
+
+    let ret = "\\begin{center}\n\\begin{tikzpicture}[]";
+
+    let table = getTable();
+
+    let [statePositions, initialStates, finalStates, labels] = getPositions();
+
+    for (let i = 0; i < statePositions.length; i++) {
+        ret += `\n\\node[state`;
+        if (initialStates.includes(i)) {
+            ret += ", initial";
+        }
+        if (finalStates.includes(i)) {
+            ret += ", accepting, thick";
+        }
+        ret += `] (${statePrefix}${i}) at (${statePositions[i][0]/scale}, ${statePositions[i][1]/scale}) {${statePrefix}${i}};`;
+    }
+
+    // add transition lines
+    for (let y = 0; y < labels.length; y++) {
+        for (let x = 0; x < labels[y].length; x++) {
+            if (labels[y][x].length === 0) {
+                continue;
+            }
+
+            let transitionTo = x;
+
+            let labelText = "";
+            for (let i = 0; i < labels[y][x].length; i++) {
+                labelText += transitionType[labels[y][x][i]];
+                if (i !== labels[y][x].length - 1) {
+                    labelText += ",";
+                }
+            }
+            
+            if(y === x) {
+                // transition to self
+                ret += `\n\\path[->] (${statePrefix}${y}) edge [in=90, out=180, loop] node {$${labelText}$} ();`;
+            } else {
+                // create edge positioning in the form of [in=angle, out=angle]
+                let inAngle = Math.atan2(statePositions[y][1] - statePositions[x][1], statePositions[y][0] - statePositions[x][0]) * 180 / Math.PI;
+                let outAngle = Math.atan2(statePositions[x][1] - statePositions[y][1], statePositions[x][0] - statePositions[y][0]) * 180 / Math.PI;
+
+                // offset by 11 degrees to the left
+                inAngle -= 11;
+                outAngle += 11;
+    
+                ret += `\n\\path[->] (${statePrefix}${y}) edge [in=${inAngle}, out=${outAngle}] node {$${labelText}$} (${statePrefix}${x});`;
+            }      
+        }
+    }
+
+    ret += "\\end{tikzpicture}\n\\end{center}";
+    navigator.clipboard.writeText(ret);
+    
+    copiedMessage();
+});
+
+document.getElementById("copyLatexTable").addEventListener("click", () => {
+    let table = getTable();
+    let ret = "\\begin{center}\n\\begin{tabular}{|c|";
+    for (let i = 0; i < table[0].length; i++) {
+        ret += "c|";
+    }
+    ret += "}\n\\hline\n";
+    ret += " &";
+    for (let i = 0; i < table[0].length; i++) {
+        ret += ` $${transitionType[i]}$ &`;
+    }
+    ret = ret.slice(0, -1);
+    ret += "\\\\\n\\hline\n";
+    for (let i = 0; i < table.length; i++) {
+        ret += ` $${statePrefix}${i}$ &`;
+        for (let j = 0; j < table[i].length; j++) {
+            ret += ` $${statePrefix}${table[i][j]}$ &`;
+        }
+        ret = ret.slice(0, -1);
+        ret += "\\\\\n\\hline\n";
+    }
+    ret += "\\end{tabular}\n\\end{center}";
+    navigator.clipboard.writeText(ret);
+
+    copiedMessage();    
+});
+
 
 document.getElementById("download-light").addEventListener("click", () => {
     let svg = document.getElementById("output");

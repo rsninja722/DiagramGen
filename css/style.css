@@ -85,6 +85,20 @@ input[type="number"],input[type="text"] {
     width:4em;
 }
 
+select {
+    background-color: var(--back2);
+    color: var(--text);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    padding: 4px;
+    margin: 4px;
+}
+
+select option {
+    background-color: var(--back2);
+    color: var(--text);
+}
+
 #main-div {
     display: inline-flex;
 }
@@ -124,4 +138,16 @@ button:active {
 
 #info {
     width: 15em;
+}
+
+#copy-msg {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 10em;
+    background-color: var(--back);
+    color: var(--text);
+    text-align: center;
+    padding: 5px;
+    z-index: 100;
 }
