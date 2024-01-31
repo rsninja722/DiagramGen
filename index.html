@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" style="--handle-color: #00000000">
 
 <head>
     <meta charset="UTF-8">
@@ -30,7 +30,11 @@
             <button id="copy">copy html</button><button id="copyMdTable">copy md table</button><button id="copyLatex">copy latex</button><button id="copyLatexTable">copy latex table</button>
             <br><button id="download-light">download light</button><button id="download-dark">download dark</button>
             <br>
-            <svg id="output" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+            <div id="output-div">
+                <svg id="output" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+                <div id="handles"></div>
+            </div>
+            <button id="toggleHandle">show handles</button>
         </div>
     </div>
     <div id="copy-msg-div"><p id="copy-msg"></p></div>

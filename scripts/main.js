@@ -1,4 +1,6 @@
 let statePositions = [];
+let stateHandles = [];
+let activeHandle = -1;
 let labelPoses = [];
 let statePrefix = "s";
 let transitionType = "0123456789";
@@ -23,6 +25,41 @@ function getTable() {
     return table;
 }
 
+function createPositions(states) {
+    statePositions = [];
+    stateHandles = [];
+    document.getElementById("handles").innerHTML = "";
+
+    let statesSqrt = Math.ceil(Math.sqrt(states));
+    let yoffset = 0;
+
+    for (let i = 0; i < states; i++) {
+        let x = (i % statesSqrt) * spacing;
+        if (i % statesSqrt === 0 && i !== 0) {
+            yoffset++;
+        }
+        statePositions.push([x + (spacing / 2), yoffset * spacing + (spacing / 2)]);
+        stateHandles.push([x + (spacing / 2), yoffset * spacing + (spacing / 2)]);
+        
+        let handle = document.createElement("div");
+        handle.classList.add("handle");
+        handle.id = "handle" + i;
+        handle.style.left = `${stateHandles[i][0]}px`;
+        handle.style.top = `${stateHandles[i][1]}px`;
+        handle.addEventListener("mousedown", (e) => {
+            if(activeHandle === -1) {
+                activeHandle = i;
+                e.target.style.display = "none";
+            } else {
+                activeHandle = -1;
+                e.target.style.display = "block";
+            }
+        });
+
+        document.getElementById("handles").appendChild(handle);
+    }
+}
+
 function getPositions() {
     let table = getTable();
     let states = parseInt(document.getElementById("height").value);
@@ -45,14 +82,7 @@ function getPositions() {
     let yoffset = 0;
 
     if (statePositions.length !== states) {
-        statePositions = [];
-        for (let i = 0; i < states; i++) {
-            let x = (i % statesSqrt) * spacing;
-            if (i % statesSqrt === 0 && i !== 0) {
-                yoffset++;
-            }
-            statePositions.push([x + (spacing / 2), yoffset * spacing + (spacing / 2)]);
-        }
+        createPositions(states);
     }
 
     for(let i = 0; i < states; i++) {
@@ -70,6 +100,25 @@ function getPositions() {
                 statePositions[i][0] -= Math.cos(angle) * (4-Math.pow(distance, 0.3));
                 statePositions[i][1] -= Math.sin(angle) * (4-Math.pow(distance, 0.3));
             }
+        }
+    }
+
+    // go through all state handles and their respective states towards them
+    let speed = 5;
+    for(let i = 0; i < states; i++) {
+        let x = statePositions[i][0];
+        let y = statePositions[i][1];
+        let x2 = stateHandles[i][0];
+        let y2 = stateHandles[i][1];
+
+        let angle = Math.atan2(y2 - y, x2 - x);
+        let distance = Math.sqrt(Math.pow(x2 - x, 2) + Math.pow(y2 - y, 2));
+
+        if(distance > 5) {
+            let x = 1 - Math.pow(1 - distance / 500, 5);
+
+            statePositions[i][0] += Math.cos(angle) * speed * x * 10;
+            statePositions[i][1] += Math.sin(angle) * speed * x * 10;
         }
     }
 
@@ -599,6 +648,32 @@ document.getElementById("download-dark").addEventListener("click", () => {
     document.body.removeChild(downloadLink);
 });
 
+document.getElementById("handles").addEventListener("mousemove", (e) => {
+    if (activeHandle !== -1) {
+        stateHandles[activeHandle] = [e.offsetX, e.offsetY];
+        document.getElementById("handle" + activeHandle).style.left = `${e.offsetX-10}px`;
+        document.getElementById("handle" + activeHandle).style.top = `${e.offsetY-10}px`;
+    }
+});
+
+document.getElementById("handles").addEventListener("mouseup", (e) => {
+    document.getElementById("handle" + activeHandle).style.display = "block";
+    activeHandle = -1;
+});
+
+document.getElementById("toggleHandle").addEventListener("click", () => {
+    // switch --handle-color between #c7d6ff and #00000000 in root
+    let root = document.documentElement.style;
+    let color = root.getPropertyValue("--handle-color");
+    if (color === "#c7d6ff") {
+        root.setProperty("--handle-color", "#00000000");
+        document.getElementById("toggleHandle").innerText = "show handles";
+    } else {
+        root.setProperty("--handle-color", "#c7d6ff");
+        document.getElementById("toggleHandle").innerText = "hide handles";
+    }    
+});
+
 function init() {
     let width = parseInt(document.getElementById("width").value);
     let height = parseInt(document.getElementById("height").value);
@@ -609,6 +684,8 @@ function init() {
             cell.addEventListener("change", generateSVG);
         }
     }
+
+    createPositions(height);
 
     setInterval(generateSVG, 100);
     generateButtons();
