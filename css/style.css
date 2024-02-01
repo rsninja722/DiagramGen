@@ -17,7 +17,7 @@
     --code-color: #abb2bf;
     --table: #040609;
     --table-head: #292b56;
-    font-family: Helvetica,Arial,sans-serif;
+    font-family: Helvetica, Arial, sans-serif;
     letter-spacing: normal;
     word-spacing: normal;
 }
@@ -73,7 +73,7 @@ td:last-child {
 }
 
 input {
-    background-color: var(--back2);
+    background-color: var(--back);
     color: var(--text);
     border: 1px solid var(--line);
     border-radius: 4px;
@@ -81,8 +81,9 @@ input {
     margin: 4px;
 }
 
-input[type="number"],input[type="text"] {
-    width:4em;
+input[type="number"],
+input[type="text"] {
+    width: 4em;
 }
 
 select {
@@ -128,6 +129,8 @@ button:hover {
 
 button:active {
     background-color: #004c99;
+    box-shadow: none;
+    transform: translateY(2px);
 }
 
 #left-div {
@@ -176,4 +179,47 @@ button:active {
     opacity: 50%;
     border-radius: 50%;
     cursor: grab;
+}
+
+.container {
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 5px;
+    margin: 5px 0;
+    background-color: var(--back2);
+    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 40%), 0px 2px 2px 0px rgb(0 0 0 / 30%), 0px 1px 5px 0px rgb(0 0 0 / 25%);
+}
+
+h3 {
+    margin: 0px;
+    background-color: var(--back);
+    padding: 10px 10px 3px 10px;
+    border-radius: 5px 5px 0 0;
+    border-bottom: 1px solid var(--line);
+    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 40%), 0px 2px 2px 0px rgb(0 0 0 / 30%), 0px 1px 5px 0px rgb(0 0 0 / 25%);
+}
+
+input[type="checkbox"] {
+    -webkit-appearance: none;
+    appearance: none;
+    background-color: var(--back);
+    margin: 0 5px;
+    width: 1.5em;
+    height: 1.5em;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    transform: translateY(3px);
+}
+
+input[type="checkbox"]:checked {
+    background-color: var(--line);
+}
+
+input[type="checkbox"]:hover {
+    background-color: var(--hover);
+}
+
+
+input[type="checkbox"]:hover:checked {
+    background-color: var(--title) !important;
 }

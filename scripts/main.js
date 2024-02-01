@@ -4,6 +4,8 @@ let activeHandle = -1;
 let labelPoses = [];
 let statePrefix = "s";
 let transitionType = "0123456789";
+let diagramWidth = 0;
+let diagramHeight = 0;
 
 const radius = 20;
 const spacing = 100;
@@ -18,7 +20,7 @@ function getTable() {
         let row = [];
         for (let j = 0; j < width; j++) {
             let cell = document.getElementById(`cell${i}${j}`);
-            row.push(parseInt(cell.value));
+            row.push(cell.value);
         }
         table.push(row);
     }
@@ -58,6 +60,12 @@ function createPositions(states) {
 
         document.getElementById("handles").appendChild(handle);
     }
+    
+    diagramWidth = (statesSqrt) * spacing;
+    diagramHeight = (statesSqrt) * spacing;
+
+    document.getElementById("diagram-width").value = diagramWidth;
+    document.getElementById("diagram-height").value = diagramHeight;
 }
 
 function getPositions() {
@@ -198,13 +206,16 @@ function getPositions() {
             if (table[y][x] === "") {
                 continue;
             }
-            if (parseInt(table[y][x]) >= states || isNaN(parseInt(table[y][x]))) {
-                continue;
+            let transitions = table[y][x].toString().split(",");
+
+            for(let i = 0; i < transitions.length; i++) {
+                if (parseInt(transitions[i]) >= states || isNaN(parseInt(transitions[i]))) {
+                    continue;
+                }
+
+                let transitionTo = parseInt(transitions[i]);
+                labels[y][transitionTo].push(x);
             }
-
-            let transitionTo = parseInt(table[y][x]);
-
-            labels[y][transitionTo].push(x);
         }
     }
 
@@ -371,10 +382,8 @@ function generateSVG() {
         }
     }
 
-    let statesSqrt = Math.ceil(Math.sqrt(states));
-
-    svg.setAttribute("height", (statesSqrt) * spacing);
-    svg.setAttribute("width", (statesSqrt) * spacing);
+    svg.setAttribute("height", diagramHeight);
+    svg.setAttribute("width", diagramWidth);
 }
 
 function generateTable() {
@@ -464,7 +473,7 @@ function generateButtons() {
         checkbox.checked = false;
         let label = document.createElement("label");
         label.htmlFor = `initial${i}`;
-        label.innerText = `s${i}`;
+        label.innerText = `${i}`;
         initial.appendChild(checkbox);
         initial.appendChild(label);
 
@@ -474,7 +483,7 @@ function generateButtons() {
         checkbox.checked = false;
         label = document.createElement("label");
         label.htmlFor = `final${i}`;
-        label.innerText = `s${i}`;
+        label.innerText = `${i}`;
         final.appendChild(checkbox);
         final.appendChild(label);
     }
@@ -519,9 +528,10 @@ document.getElementById("copyMdTable").addEventListener("click", () => {
     }
     md += "\n";
     for (let i = 0; i < table.length; i++) {
-        md += `| s${i} |`;
+        md += `| ${statePrefix}${i} |`;
         for (let j = 0; j < table[i].length; j++) {
-            md += ` s${table[i][j]} |`;
+            let text = " " + table[i][j].split(",").map(x => statePrefix + x).join(",") + " |";
+            md += text;
         }
         md += "\n";
     }
@@ -533,9 +543,7 @@ document.getElementById("copyMdTable").addEventListener("click", () => {
 document.getElementById("copyLatex").addEventListener("click", () => {
     let scale = 30;
 
-    let ret = "\\begin{center}\n\\begin{tikzpicture}[]";
-
-    let table = getTable();
+    let ret = "%% include in preamble:\n%% \\usepackage{tikz}\n%% \\usetikzlibrary{automata,positioning,arrows}\n\\begin{center}\n\\begin{tikzpicture}[]";
 
     let [statePositions, initialStates, finalStates, labels] = getPositions();
 
@@ -672,6 +680,14 @@ document.getElementById("toggleHandle").addEventListener("click", () => {
         root.setProperty("--handle-color", "#c7d6ff");
         document.getElementById("toggleHandle").innerText = "hide handles";
     }    
+});
+
+
+document.getElementById("diagram-width").addEventListener("change", () => {
+    diagramWidth = parseInt(document.getElementById("diagram-width").value);
+});
+document.getElementById("diagram-height").addEventListener("change", () => {
+    diagramHeight = parseInt(document.getElementById("diagram-height").value);
 });
 
 function init() {

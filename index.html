@@ -9,27 +9,35 @@
 </head>
 <body>
     <div id="main-div">
-        <div>
-            <details>
-                <summary>Info</summary>
-                <p id="info">In the table below, enter the numbers for the state that each action leads to from each state (no need to write s_, just the number)</p>
-            </details>
+        <div class="container">
+            <h3>definition</h3>
             <span>actions </span><input type="number" id="width" value="2" min="1">
             <span>states </span><input type="number" id="height" value="4" min="1"><br>
-            <span>state prefix</span><input type="text" id="state-prefix" value="s">
-            <span>transition type</span><select id="transition-type">
-                <option value="0123456789">number</option>
-                <option value="abcdefghijklmnopqrstuvwxyz">letter</option>
-            </select>
             <table id="input-table"><tr><th></th><th>0</th><th>1</th></tr><tr><td>s0</td><td><input type="text" id="cell00" value="1"></td><td><input type="text" id="cell01" value="2"></td></tr><tr><td>s1</td><td><input type="text" id="cell10" value="3"></td><td><input type="text" id="cell11" value="1"></td></tr><tr><td>s2</td><td><input type="text" id="cell20" value="1"></td><td><input type="text" id="cell21" value="3"></td></tr><tr><td>s3</td><td><input type="text" id="cell30" value="2"></td><td><input type="text" id="cell31" value="1"></td></tr></table>
+            <details>
+                <summary>Info</summary>
+                <p id="info">In the table below, enter the numbers for the state that each action leads to from each state, you can enter multiple numbers separated by commas (no need to write s_, just the number)</p>
+            </details>
         </div>
         <div id="left-div">
-            <h4>initial states:</h4><div id="initial-states"></div>
-            <h4>final states:</h4><div id="final-states"></div>
-            <br>
-            <button id="copy">copy html</button><button id="copyMdTable">copy md table</button><button id="copyLatex">copy latex</button><button id="copyLatexTable">copy latex table</button>
-            <br><button id="download-light">download light</button><button id="download-dark">download dark</button>
-            <br>
+            <div class="container">
+                <h3>options</h3>
+                <span>state prefix</span><input type="text" id="state-prefix" value="s">
+                <span>transition type</span><select id="transition-type">
+                    <option value="0123456789">number</option>
+                    <option value="abcdefghijklmnopqrstuvwxyz">letter</option>
+                </select>
+                <h4>initial states:</h4><div id="initial-states"></div>
+                <h4>final states:</h4><div id="final-states"></div>
+                <br>
+                <span>width</span><input type="number" id="diagram-width" value="200" min="1">
+                <span>height</span><input type="number" id="diagram-height" value="200" min="1">
+            </div>
+            <div class="container">
+                <h3>export</h3>    
+                <button id="copy">copy html</button><button id="copyMdTable">copy md table</button><button id="copyLatex">copy latex</button><button id="copyLatexTable">copy latex table</button>
+                <br><button id="download-light">download light</button><button id="download-dark">download dark</button>
+            </div>
             <div id="output-div">
                 <svg id="output" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
                 <div id="handles"></div>
