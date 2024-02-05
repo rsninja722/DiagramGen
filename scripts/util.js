@@ -1,5 +1,5 @@
 function getTable() {
-    let width = parseInt(document.getElementById("width").value);
+    let width = parseInt(document.getElementById("width").value) + 1;
     let height = parseInt(document.getElementById("height").value);
 
     let table = [];

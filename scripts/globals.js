@@ -3,7 +3,7 @@ let stateHandles = [];
 let activeHandle = -1;
 let labelPoses = [];
 let statePrefix = "s";
-let transitionType = "0123456789";
+let transitionType = "01ε";
 let diagramWidth = 0;
 let diagramHeight = 0;
 

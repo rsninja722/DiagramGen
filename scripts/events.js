@@ -1,9 +1,13 @@
 
 function generateTable() {
-    let width = parseInt(document.getElementById("width").value);
+    let width = parseInt(document.getElementById("width").value) + 1; // + 1 for epsilon transitions
     let height = parseInt(document.getElementById("height").value);
 
     let table = document.getElementById("input-table");
+
+    let type = document.getElementById("transition-type").value;
+    transitionType = type.slice(0, width - 1);
+    transitionType += "ε";
 
     // cache old inputs
     let oldInputs = [];
@@ -44,8 +48,12 @@ function generateTable() {
             input.type = "text";
             input.id = `cell${(i - 1)}${j}`;
             input.addEventListener("change", generateSVG);
-            if (i <= oldHeight && j < oldWidth) {
+            if (i <= oldHeight && j < oldWidth - 1) {
                 input.value = oldInputs[i - 1][j];
+            }
+
+            if(i <= oldHeight && j === width - 1) {
+                input.value = oldInputs[i - 1][oldWidth - 1];
             }
 
 
@@ -75,13 +83,15 @@ document.getElementById("state-prefix").addEventListener("change", () => {
 });
 
 document.getElementById("transition-type").addEventListener("change", () => {
+    let width = parseInt(document.getElementById("width").value) + 1; // + 1 for epsilon transitions
     let type = document.getElementById("transition-type").value;
     let header = document.getElementById("input-table").children[0].children[0].children;
+    transitionType = type.slice(0, width - 1);
+    transitionType += "ε";
+
     for (let i = 1; i < header.length; i++) {
         header[i].innerText = type[i - 1];
     }
-
-    transitionType = type;
 });
 
 document.getElementById("copy").addEventListener("click", () => {
