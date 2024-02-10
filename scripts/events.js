@@ -90,7 +90,7 @@ document.getElementById("transition-type").addEventListener("change", () => {
     transitionType += "ε";
 
     for (let i = 1; i < header.length; i++) {
-        header[i].innerText = type[i - 1];
+        header[i].innerText = transitionType[i - 1];
     }
 });
 
